@@ -1,33 +1,50 @@
-# Pinentry settings
 DATE      = $$(date +'%B %Y')
-VERSION   = 0.1
-BUGREPORT = https:\/\/github.com\/ritze\/pinentry-dmenu
+VERSION   = 1.0
+BUGREPORT = https:\/\/github.com\/zedkaido\/pinentry-dmenu
 
-# Paths
-PREFIX    = /usr/local
-MANPREFIX = ${PREFIX}/share/man
+PREFIX = /usr/local
+MANPREFIX = $(PREFIX)/share/man
 
 X11INC = /usr/X11R6/include
 X11LIB = /usr/X11R6/lib
+FREETYPEINC = /usr/include/freetype2
 
-# Xinerama, comment if you don't want it
+OS := $(shell uname -s)
+ifeq ($(OS),Linux)
+	X11INC = /usr/X11R6/include
+	X11LIB = /usr/X11R6/lib
+	FREETYPEINC = /usr/include/freetype2
+endif
+
+ifeq ($(OS), OpenBSD)
+	X11INC = /usr/X11R6/include
+	X11LIB = /usr/X11R6/lib
+	FREETYPEINC = $(X11INC)/freetype2
+	MANPREFIX = ${PREFIX}/man
+endif
+
+ifeq ($(OS),Darwin)
+	X11INC = /opt/X11/include
+	X11LIB = /opt/X11/lib
+	BREW_FREETYPE = $(shell brew --prefix freetype 2>/dev/null || echo "/usr/local/bin/freetype")
+	FREETYPEINC = $(BREW_FREETYPE)/include/freetype2 
+endif
+
 XINERAMALIBS  = -lXinerama
 XINERAMAFLAGS = -DXINERAMA
 
-# Freetype
 FREETYPELIBS = -lfontconfig -lXft
-FREETYPEINC = /usr/include/freetype2
-# OpenBSD (uncomment)
-#FREETYPEINC = ${X11INC}/freetype2
 
-# Includes and libs
-INCS = -I${X11INC} -I${FREETYPEINC}
-LIBS = -L${X11LIB} -lX11 ${XINERAMALIBS} ${FREETYPELIBS}
+# ls $(brew --prefix libgpg-error)/include/
+# /opt/homebrew/opt/libgpg-error/include/
 
-# Flags
-CPPFLAGS = -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS} -DPACKAGE_VERSION=\"${VERSION}\" -DPACKAGE_BUGREPORT=\"${BUGREPORT}\"
-CFLAGS   = -std=c99 -pedantic -Wall -Os ${INCS} ${CPPFLAGS}
-LDFLAGS  = -s ${LIBS}
+INCS = -I$(X11INC) -I$(FREETYPEINC) -I/opt/homebrew/include
+LIBS = -L$(X11LIB) -lX11 $(XINERAMALIBS) $(FREETYPELIBS) -L/opt/homebrew/lib
 
-# Compiler and linker
+# CPPFLAGS = -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -DVERSION=\"${VERSION}\" ${XINERAMAFLAGS} -DPACKAGE_VERSION=\"${VERSION}\" -DPACKAGE_BUGREPORT=\"${BUGREPORT}\"
+CPPFLAGS = -D_DEFAULT_SOURCE -D_BSD_SOURCE -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L -DVERSION=\"$(VERSION)\" $(XINERAMAFLAGS) -DPACKAGE_VERSION=\"${VERSION}\" -DPACKAGE_BUGREPORT=\"${BUGREPORT}\"
+CFLAGS   = -std=c99 -pedantic -Wall -Os $(INCS) $(CPPFLAGS) 
+LDFLAGS  = $(LIBS)
+
+# compiler and linker
 CC = cc

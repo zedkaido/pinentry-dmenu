@@ -18,7 +18,12 @@
  */
 
 #include <stdlib.h>
+
 #include <string.h>
+#ifdef __APPLE__
+#include <strings.h>
+#endif
+
 #include <unistd.h>
 #include <assert.h>
 

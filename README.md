@@ -16,6 +16,11 @@ Requirements
 ------------
 In order to build dmenu you need the Xlib header files.
 
+If you are running macOS:
+	brew install --cask xquartz 
+	brew install freetype
+	brew install libconfig
+
 
 Installation
 ------------
